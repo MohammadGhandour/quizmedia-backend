@@ -15,6 +15,9 @@ const createDatabaseIfNotExists = async () => {
         port: DB_PORT,
         dialect: DB_DIALECT,
         logging: false,
+        define: {
+            freezeTableName: true
+        }
     });
 
     try {
@@ -28,7 +31,7 @@ const createDatabaseIfNotExists = async () => {
 };
 
 const connectDB = async () => {
-    await createDatabaseIfNotExists();
+    // await createDatabaseIfNotExists();
     try {
         await sequelize.authenticate();
         console.log("✅ Database connected successfully!");
