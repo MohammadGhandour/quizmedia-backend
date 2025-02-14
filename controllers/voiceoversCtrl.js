@@ -57,7 +57,8 @@ exports.getVoiceOver = async (req, res) => {
 
         for (let instance of texts) {
             const { identifier, text } = instance;
-            const trimmed = text.trim();
+
+            const trimmed = text.trim().replace(/\*/g, "");
 
             const questionWithVoiceAlreadyExists = await Voiceovers.findOne({ raw: true, where: { question: trimmed } });
 
