@@ -67,7 +67,7 @@ exports.getVoiceOver = async (req, res) => {
                 objectToReturn[identifier] = `${AUDIOS_DOMAIN}/${questionWithVoiceAlreadyExists.id}.mp3`;
             } else {
                 console.log("Generating new MP3 for:", text);
-                const voicemakerResponse = await axios.post(VOICEMAKER_URL, { ...voice_maker_options, Text: text },
+                const voicemakerResponse = await axios.post(VOICEMAKER_URL, { ...voice_maker_options, Text: trimmed },
                     { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${VOICEMAKER_API_KEY}` } }
                 );
 
