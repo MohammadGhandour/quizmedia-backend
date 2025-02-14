@@ -20,8 +20,9 @@ exports.getVoiceOver = async (req, res) => {
 
         const voice_maker_options = {
             "Engine": "neural",
-            "VoiceId": "ai3-Emily",
-            "LanguageCode": "en-US",
+            "VoiceId": "ai2-fr-FR-Erwan",
+            "LanguageCode": "fr-FR",
+            "AccentCode": "fr-FR",
             "OutputFormat": "mp3",
             "SampleRate": "48000",
             "Effect": "default",
