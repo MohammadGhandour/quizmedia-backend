@@ -1,14 +1,34 @@
 const Voiceovers = require("../models/Voiceovers");
 const axios = require("axios");
+const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
-const path = require("path");
+const { Op } = require("sequelize");
+
 const { AUDIOS_UPLOADS_FOLDER, AUDIOS_DOMAIN, VOICEMAKER_URL, VOICEMAKER_API_KEY } = require("../config/env");
 
 exports.getAllVoiceovers = async (req, res) => {
     try {
-        const voiceovers = await Voiceovers.findAll({ raw: true });
-        return res.status(200).json(voiceovers);
+        const { page = 1, limit = 10, query = "", sortBy = "createdAt", order = "DESC" } = req.query;
+        const offset = (page - 1) * limit;
+
+        const whereCondition = query ? { question: { [Op.like]: `%${query}%` } } : {};
+
+        const voiceovers = await Voiceovers.findAll({
+            where: whereCondition,
+            offset: parseInt(offset),
+            limit: parseInt(limit),
+            order: [[sortBy, order.toUpperCase()]],
+            raw: true
+        });
+
+        for (let voiceover of voiceovers) {
+            voiceover.audioUrl = `${AUDIOS_DOMAIN}/${voiceover.id}.mp3`;
+        }
+
+        const totalCount = await Voiceovers.count({ where: whereCondition });
+
+        return res.status(200).json({ voiceovers, hasMore: offset + limit < totalCount });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -98,5 +118,28 @@ exports.playgroundVoiceOver = async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json(error?.response?.data || error.message);
+    }
+};
+
+exports.deleteVoiceover = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const voiceover = await Voiceovers.findByPk(id, { raw: true });
+        if (!voiceover) {
+            return res.status(404).json({ error: "Voiceover not found" });
+        }
+
+        const audioFilePath = path.join(AUDIOS_UPLOADS_FOLDER, `${id}.mp3`);
+
+        if (fs.existsSync(audioFilePath)) {
+            fs.unlinkSync(audioFilePath);
+        }
+
+        await Voiceovers.destroy({ where: { id } });
+        return res.status(200).json("Voiceover deleted successfully");
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: error.message });
     }
 };
